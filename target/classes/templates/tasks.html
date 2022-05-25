@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet"href="../static/css/reset.css"  th:href="@{/css/reset.css}">
+    <link rel="stylesheet" href="../static/css/style.css" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="../static/css/nav.css" th:href="@{/css/nav.css}">
+    <link rel="stylesheet"  href="../static/css/tasks.css"th:href="@{/css/tasks.css}">
+    <script src="https://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>
+    <script th:src="@{/js/nav.js}"></script>
+    <script th:src="@{/js/pop-up-form.js}"></script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Планувальник задач</title>
+    <style>
+
+
+        .pop-up-form{
+            width: 40%;
+            margin-top: 5%;
+            border: none;
+            height: 60%;
+            position: absolute;
+            background-color: #333;
+            z-index: 2;
+            flex-direction: column;
+            justify-content:space-between;
+            align-items: center;
+            display: none;
+        }
+        .pop-up-form input{
+            width: 60%;
+            height: 8%;
+            text-align: center;
+            font-size: 120%;
+        }
+        .pop-up-form div{
+            display: flex;
+            width: 60%;
+            align-self: center;
+            justify-self: center;
+            flex-direction: column;
+        }
+        .pop-up-form div input {
+            margin: 20px 0 0 0 ;
+            width: 100%;
+            height: 100%;
+        }
+
+        .submit{
+            width: 40%;
+            height: 10%;
+            background-color: #ccc;
+            border: none;
+            font-size: 150%;
+            margin-bottom: 5%;
+        }
+        .submit:hover, .close:hover{
+            transform: scale(1.2);
+        }
+
+        .close{
+            margin-top: 5%;
+            background-color: brown;
+            border: none;
+            font-size: 120%;
+        }
+
+
+        .darked{
+            background-color: rgba(0, 0, 0, 0.5);
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        @media screen and (max-width:1000px) {
+
+            .pop-up-form{
+                width: 80%;
+            }}
+        .form-show-anim{
+            animation: form-show 0.5s linear;
+            animation-fill-mode: forwards;
+        }
+        .form-show-anim-reversed{
+            animation: form-show-reverse 0.5s linear;
+        }
+
+        @keyframes form-show-reverse {
+            0%{
+                opacity: 1;
+            }
+            100%{
+                opacity: 0;
+            }
+
+        }
+        @keyframes form-show {
+            0%{
+                opacity: 0;
+            }
+            100%{
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="darked"></div>
+<form class="pop-up-form" id="redact-form"   th:action="@{/tasks/{id}/r(id=${date})}" method="post">
+    <input type="hidden" name="id" id="redact-form-id">
+    <button type="button" class="close" onclick="hidForm('redact-form')">X</button>
+    <input id="redact-form-name" type="text" name="name" placeholder="Назва">
+    <input id="redact-form-priority" type="number" min="0" max="5" name="priority" placeholder="Пріорітет">
+    <div>
+        <input id="redact-form-date" pattern="yyyy-mm-dd" type="date" name="date">
+        <input id="redact-form-time" type="time" name="time">
+    </div>
+    <button type="submit" class="submit">Редагувати</button>
+</form>
+<main>
+    <nav>
+        <button onclick="dropDown()" class="show-nav"></button>
+        <p class="logout-a" th:text="${user}" >VIKTORBERYNDA</p>
+        <img th:src="@{/imgs/icon.svg.png}">
+        <a href="/tasks/all">Всі</a>
+        <a href="/tasks/today">Сьогодні</a>
+        <a href="/tasks/tomorrow">Завтра</a>
+        <a href="/tasks/choosedate">Обрати дату</a>
+        <a href="/tasks/this-month">Цей місяць</a>
+        <button class="logout-img" onclick="window.location.href='/logout'" th:src="@{/imgs/logout-white.png}"></button>
+
+        <div id="myDropdown" class="dropdown-content">
+            <a href="/tasks/all">Всі</a>
+            <a href="/tasks/today">Сьогодні</a>
+            <a href="/tasks/tomorrow">Завтра</a>
+            <a href="/tasks/choosedate">Обрати дату</a>
+            <a href="/tasks/this-month">Цей місяць</a>
+            <a href="/logout">Вийти</a>
+
+        </div>
+    </nav>
+    <header>
+        <p class="error" th:text="${param.error}"></p>
+        <h1 th:if="${date} == 'all'">Усі задачі:</h1>
+        <h1 th:unless="${date} == 'all'">
+            Задачі на
+
+            <span th:if="${dateUnformat}=='today'">сьогодні</span>
+            <span th:if="${dateUnformat}=='tomorrow'">завтра</span>
+            <span th:if="${date}=='this-month'">цей місяць</span>
+            <span th:unless="${dateUnformat}=='today' or ${dateUnformat}=='tomorrow'or ${date}=='this-month'"
+                  th:text="date"></span>
+        </h1>
+        <hr>
+        <form class="add-form" method="post">
+            <div class="input">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input required type="text" name="name" placeholder="Назва">
+                <input required type="number" min="0" max="5" name="priority" placeholder="Пріорітет">
+                <div>
+                    <input required type="date" th:pattern="yyyy-mm-dd" th:attr="min=${date}" th:value="${date}"
+                           name="date">
+                    <input required type="time" name="time">
+                </div>
+            </div>
+            <button type="submit">Додати</button>
+
+        </form>
+        <hr>
+    </header>
+    <div class="content">
+        <table class="sortable">
+            <thead>
+            <tr>
+                <td class="item">Ім'я</td>
+                <td class="item">Пріорітет</td>
+                <td class="item">Час</td>
+                <td style="display: none;">id</td>
+                <td>Управління</td>
+            </tr>
+            </thead>
+            <tr th:unless="${not #lists.isEmpty(tasks)}">
+                <td>
+                    <p>
+                        В вас ще немає задач
+                    </p>
+                </td>
+            </tr>
+            <th:block th:if="${not #lists.isEmpty(tasks)}">
+                <tr  th:each="task : ${tasks}">
+                    <td th:id="${task.id}+name" th:text="${task.name}" class="item"></td>
+                    <td th:id="${task.id}+priority" th:text="${task.priority}" class="item"></td>
+                    <td th:id="${task.id}+datetime" th:utext="${task.date} + '<br>' + ${task.time}" class="item"></td>
+                    <td class="item buttons-class">
+                        <div class="buttons">
+                            <form th:action="@{/tasks/{id}/d(id=${date})}" method="post">
+                                <input type="hidden" name="id" th:value="${task.id}">
+                                <button class="delete" type="submit"></button>
+                            </form>
+                            <button id="redact" class="redact" type="button"
+                                    th:onclick="|showForm('redact-form', '${task.id}')|"></button>
+                        </div>
+                    </td>
+                </tr>
+            </th:block>
+        </table>
+    </div>
+
+
+</main>
+
+
+
+</body>
+</html>

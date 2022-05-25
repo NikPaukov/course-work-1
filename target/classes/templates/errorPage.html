@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+  <link rel="stylesheet" th:href="@{css/reset.css}">
+  <link rel="stylesheet" th:href="@{css/style.css}">
+  <link rel="stylesheet" th:href="@{css/nav.css}">
+  <link rel="stylesheet" th:href="@{css/login.css}">
+  <title>Помилка!</title>
+<style>
+  main{
+    padding-top: 10%;
+    margin-top: 3%;
+    padding-bottom: 10%;
+    font-size: 200%;
+    color: #f2f2f2;
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <p th:utext="${error}"></p>
+  <br>
+  <a href="/tasks/all">Повернутися до задач</a>
+</main>
+</body>
+</html>
